@@ -66,6 +66,6 @@ jobs:
             -f description='called by main' \
             -f context='sub workflow'
   call_sub_by_call_workflow:
-    needs: [prepare]
+    needs: prepare
     uses: rokkish/sync_status_check/.github/workflows/sub2.yaml@add_call_workflow
 
