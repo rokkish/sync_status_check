@@ -1,0 +1,66 @@
+name: main workflow
+
+on:
+  pull_request:
+
+permissions:
+  actions: write
+  statuses: write
+
+concurrency:
+  # limit concurrency to 1
+  group: ${{ github.workflow }}
+
+jobs:
+  prepare:
+    runs-on: self-hosted
+    steps:
+      - name: Dump job context
+        env:
+          JOB_CONTEXT: ${{ toJson(job) }}
+        run: |
+          echo "$JOB_CONTEXT"
+          echo "$GITHUB_BASE_REF"
+          echo "$GITHUB_REF"
+      - name: check cli
+        run: |
+          gh --version
+          jq --version
+  main:
+    runs-on: self-hosted
+    needs: prepare
+    steps:
+      - name: always success
+        run: |
+          echo "success"
+  call_sub:
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    runs-on: self-hosted
+    needs: prepare
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - name: run sub workflow
+        run: |
+          gh workflow run sub.yaml -R rokkish/sync_status_check --ref test
+          # after merge, --ref test is not required
+      - name: set sub workflow status pending
+        run: |
+          git log --oneline --graph --decorate --all
+
+          # current ref is merge commit
+          # HEAD^2 means the second parent of HEAD
+          # fetch-depth: 2 is required
+          # --> fatal: ambiguous argument 'HEAD^2': unknown revision or path not in the working tree.
+          # https://git-scm.com/docs/git-rev-parse#Documentation/git-rev-parse.txt-emltrevgtltngtemegemHEADv1510em
+          latest_main_run_commit_hash=$(git rev-parse HEAD^2)
+          gh api \
+            --method POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            repos/rokkish/sync_status_check/statuses/${latest_main_run_commit_hash} \
+            -f state=pending \
+            -f description='called by main' \
+            -f context='sub workflow'
