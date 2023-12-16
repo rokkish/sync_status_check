@@ -44,8 +44,8 @@ jobs:
           fetch-depth: 2
       - name: run sub workflow
         run: |
-          gh workflow run sub.yaml -R rokkish/sync_status_check --ref test
-          # after merge, --ref test is not required
+          gh workflow run sub.yaml -R rokkish/sync_status_check
+          # before merged, "--ref <topic-branch>" is required
       - name: set sub workflow status pending
         run: |
           git log --oneline --graph --decorate --all
