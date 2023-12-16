@@ -9,7 +9,7 @@ permissions:
 
 concurrency:
   # limit concurrency to 1
-  group: ${{ github.workflow }}
+  group: ${{ github.workflow }}-${{ github.sha }}
 
 jobs:
   prepare:
