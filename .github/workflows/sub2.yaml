@@ -1,0 +1,19 @@
+name: sub2
+
+on:
+  workflow_call:
+
+concurrency:
+  # limit concurrency to 1
+  group: ${{ github.workflow }}
+
+jobs:
+  job:
+    runs-on: self-hosted
+    steps:
+      - name: sub routine
+        id: sub_routine
+        run: |
+          echo "success"
+          # echo "failure"
+          # exit 1

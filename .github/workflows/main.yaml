@@ -9,7 +9,7 @@ permissions:
 
 concurrency:
   # limit concurrency to 1
-  group: ${{ github.workflow }}
+  group: ${{ github.workflow }}-${{ github.sha }}
 
 jobs:
   prepare:
@@ -65,3 +65,7 @@ jobs:
             -f state=pending \
             -f description='called by main' \
             -f context='sub workflow'
+  call_sub_by_call_workflow:
+    needs: prepare
+    uses: rokkish/sync_status_check/.github/workflows/sub2.yaml@add_call_workflow
+
